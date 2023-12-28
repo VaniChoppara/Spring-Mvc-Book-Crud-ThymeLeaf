@@ -4,7 +4,9 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
@@ -28,48 +30,37 @@ public class BookController {
 	}
 
 	@GetMapping("/addbook")
-	public ModelAndView openAddNew() {
-		ModelAndView mav = new ModelAndView();
-		Book book = new Book();
-		mav.addObject("book", book);
-		mav.setViewName("addnew");
-		return mav;
+	public String openAddNew(@ModelAttribute("book") Book book) {
+		return "addnew";
 	}
 	
 	@GetMapping("/editbook")
-	public ModelAndView openEdit(@RequestParam("id") Integer id) {
-		ModelAndView mav = new ModelAndView();		
+	public String openEdit(Model model,@RequestParam("id") Integer id) {
 		Book book = bookService.getBookById(id);
-		mav.addObject("book", book);
-		mav.setViewName("addnew");
-		return mav;
+		model.addAttribute("book", book);
+		return "addnew";
 	}
 	
 	@GetMapping("/deletebook")
-	public ModelAndView deleteBook(@RequestParam("id") Integer id) {
-		ModelAndView mav = new ModelAndView();		
+	public String deleteBook(Model model, @RequestParam("id") Integer id) {
 		bookService.deleteBook(id);
 		List<Book> listAllBooks = bookService.listAllBooks();
-		mav.addObject("listAllBooks", listAllBooks);
-		mav.setViewName("listing");
-		return mav;
+		model.addAttribute("listAllBooks", listAllBooks);
+		return "listing";
 	}
 	
 	
 	@PostMapping("/savebook")
-	public ModelAndView saveBook(Book book) {
-		ModelAndView mav=new ModelAndView();
+	public String saveBook(Model model, Book book) {
 		book.setActive("Y");
 		boolean status = bookService.saveBook(book);
 		
-		if(status)
-			mav.addObject("successMsg", "Book has been save Successfully!");
+		if(status) {
+			model.addAttribute("successMsg", "Book has been save Successfully!");
+			model.addAttribute("book", new Book());
+		}
 		else
-			mav.addObject("failureMsg", "Error occured in Book saving...");
-		
-		Book newbook = new Book();
-		mav.addObject("book", newbook);
-		mav.setViewName("addnew");
-		return mav;
+			model.addAttribute("failureMsg", "Error occured in Book saving...");
+		return "addnew";
 	}
 }
